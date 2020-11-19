@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.2</version>
+    <date>2020-11-19T12:02:57Z</date>
+    <groups>
+        <group>
+            <name>Templates</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Fiberhome - AN5116-XX</template>
+            <name>Fiberhome - AN5116-XX</name>
+            <description>Autor: Aurélio Fernando Braz
+Monitoramento de PON's, Cards, ONU's
+email: aurelio@edatacenter.com.br
+Requisitos:
+GEPON-FIBERHOME-MIB</description>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>MGR Card Info</name>
+                </application>
+                <application>
+                    <name>ONU</name>
+                </application>
+                <application>
+                    <name>PON Status</name>
+                </application>
+                <application>
+                    <name>PON Traffic</name>
+                </application>
+                <application>
+                    <name>Service Card Info</name>
+                </application>
+                <application>
+                    <name>SysInfo</name>
+                </application>
+            </applications>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>Cards</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>discovery[{#CARD},GEPON-OLT-COMMON-MIB::cardCpuUtil]</snmp_oid>
+                    <key>cardCpuUtil</key>
+                    <delay>60m</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>oltPonCpuLoad [SLOT-{#SNMPINDEX}]</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>GEPON-OLT-COMMON-MIB::cardCpuUtil.{#SNMPINDEX}</snmp_oid>
+                            <key>cardCpuUtil[{#SNMPINDEX}]</key>
+                            <units>%</units>
+                            <applications>
+                                <application>
+                                    <name>Service Card Info</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <parameters>
+                                        <parameter>0.01</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last(#10)}&gt;=95</expression>
+                                    <name>CPU_CARD [{#SNMPINDEX}]</name>
+                                    <priority>AVERAGE</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>PonCpuLoad[SLOT-{#SNMPINDEX}]</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <drawtype>GRADIENT_LINE</drawtype>
+                                    <color>E64A19</color>
+                                    <item>
+                                        <host>Fiberhome - AN5116-XX</host>
+                                        <key>cardCpuUtil[{#SNMPINDEX}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Pons</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>discovery[{#IFDESCR},IF-MIB::ifDescr]</snmp_oid>
+                    <key>ifDescr</key>
+                    <delay>30m</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>oltPonTrafficIn $1</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>IF-MIB::ifHCInOctets.{#SNMPINDEX}</snmp_oid>
+                            <key>ifHCInOctets[{#IFDESCR}]</key>
+                            <delay>6m</delay>
+                            <units>bps</units>
+                            <applications>
+                                <application>
+                                    <name>PON Traffic</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <parameters>
+                                        <parameter>8</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>oltPonTrafficOut $1</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>IF-MIB::ifHCOutOctets.{#SNMPINDEX}</snmp_oid>
+                            <key>ifHCOutOctets[{#IFDESCR}]</key>
+                            <delay>6m</delay>
+                            <units>bps</units>
+                            <applications>
+                                <application>
+                                    <name>PON Traffic</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>CHANGE_PER_SECOND</type>
+                                    <parameters>
+                                        <parameter/>
+                                    </parameters>
+                                </step>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <parameters>
+                                        <parameter>8</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;5000000000000</expression>
+                                    <name>[{#IFDESCR}]_Pon &gt; Traffic 500Mbps</name>
+                                    <priority>INFO</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>oltPonAuthOnuNum [{#IFDESCR}]</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>GEPON-OLT-COMMON-MIB::oltPonAuthOnuNum.{#SNMPINDEX}</snmp_oid>
+                            <key>oltPonAuthOnuNum[{#IFDESCR}]</key>
+                            <delay>300</delay>
+                            <applications>
+                                <application>
+                                    <name>PON Status</name>
+                                </application>
+                            </applications>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;100</expression>
+                                    <name>[{#IFDESCR}]_Pon &gt; 100 ONU</name>
+                                    <priority>INFO</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>oltPonOnlineStatus [{#IFDESCR}]</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>GEPON-OLT-COMMON-MIB::oltPonOnlineStatus.{#SNMPINDEX}</snmp_oid>
+                            <key>oltPonOnlineStatus[{#IFDESCR}]</key>
+                            <delay>300</delay>
+                            <applications>
+                                <application>
+                                    <name>PON Status</name>
+                                </application>
+                            </applications>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last(#2)}=0</expression>
+                                    <name>[{#IFDESCR}]_Down</name>
+                                    <priority>HIGH</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>Traffic - {#IFDESCR}</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <drawtype>GRADIENT_LINE</drawtype>
+                                    <color>199C0D</color>
+                                    <item>
+                                        <host>Fiberhome - AN5116-XX</host>
+                                        <key>ifHCOutOctets[{#IFDESCR}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <drawtype>GRADIENT_LINE</drawtype>
+                                    <color>F63100</color>
+                                    <item>
+                                        <host>Fiberhome - AN5116-XX</host>
+                                        <key>ifHCInOctets[{#IFDESCR}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <parameters>
+                                <parameter>var data = value;
+
+data = data.replace(&quot;[&quot;,&quot;&quot;);
+data = data.replace(&quot;]&quot;,&quot;&quot;);
+data = data.split(&quot;,&quot;);
+result = &quot;&quot;;//data[1];
+
+e=0;
+for(var i in data) {
+    if(e==0) {
+    	result += data[i] + &quot;,&quot;;
+      e=1;
+    }
+    else {
+    	result += data[i] + &quot;-&quot;;
+      e=0;
+    }
+ }
+ 
+ result = result.split(&quot;-&quot;);
+ 
+ re = &quot;[&quot;;
+ for(var d in result){
+ if(result[d].includes(&quot;PON&quot;)) {
+ 	bar = result[d].split(&quot;/&quot;);
+    if(bar.length==2)
+ 	re += result[d] + &quot;,&quot;;
+    }
+ }
+re = re.substring(0, re.length - 1)
+re += &quot;]&quot;;
+return re;</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Onu</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>discovery[{#IFDESCR},IF-MIB::ifDescr]</snmp_oid>
+                    <key>ifPonOnu</key>
+                    <delay>30m</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>onuPonRxOpticalPower [{#IFDESCR}]</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>GEPON-OLT-COMMON-MIB::onuPonRxOpticalPower.{#SNMPINDEX}</snmp_oid>
+                            <key>onuPonRxOpticalPower[{#IFDESCR}]</key>
+                            <delay>15m</delay>
+                            <value_type>FLOAT</value_type>
+                            <units>Db</units>
+                            <applications>
+                                <application>
+                                    <name>ONU</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <parameters>
+                                        <parameter>0.01</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&lt;-30</expression>
+                                    <name>[{#IFDESCR}]_onuopticalPowerLow</name>
+                                    <priority>INFO</priority>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <parameters>
+                                <parameter>var data = value;
+
+data = data.replace(&quot;[&quot;,&quot;&quot;);
+data = data.replace(&quot;]&quot;,&quot;&quot;);
+data = data.split(&quot;,&quot;);
+result = &quot;&quot;;//data[1];
+
+e=0;
+for(var i in data) {
+    if(e==0) {
+    	result += data[i] + &quot;,&quot;;
+      e=1;
+    }
+    else {
+    	result += data[i] + &quot;-&quot;;
+      e=0;
+    }
+ }
+ 
+ result = result.split(&quot;-&quot;);
+ 
+ re = &quot;[&quot;;
+ for(var d in result){
+ if(result[d].includes(&quot;PON&quot;)) {
+ 	bar = result[d].split(&quot;/&quot;);
+    if(bar.length==3)
+ 	re += result[d] + &quot;,&quot;;
+    }
+ }
+re = re.substring(0, re.length - 1)
+re += &quot;]&quot;;
+return re;</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Mgr</name>
+                    <type>SNMP_AGENT</type>
+                    <snmp_oid>discovery[{#CARD},GEPON-OLT-COMMON-MIB::mgrCardCpuUtil]</snmp_oid>
+                    <key>mgrCardCpuUtil</key>
+                    <delay>1d</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>oltMgrCpuLoad [MGR-{#SNMPINDEX}]</name>
+                            <type>SNMP_AGENT</type>
+                            <snmp_oid>GEPON-OLT-COMMON-MIB::mgrCardCpuUtil.{#SNMPINDEX}</snmp_oid>
+                            <key>mgrCardCpuUtil[{#SNMPINDEX}]</key>
+                            <units>%</units>
+                            <applications>
+                                <application>
+                                    <name>MGR Card Info</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <parameters>
+                                        <parameter>0.01</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>mgrCpuUtilization[MGR-{#SNMPINDEX}]</name>
+                            <show_work_period>NO</show_work_period>
+                            <show_triggers>NO</show_triggers>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <drawtype>GRADIENT_LINE</drawtype>
+                                    <color>C2185B</color>
+                                    <item>
+                                        <host>Fiberhome - AN5116-XX</host>
+                                        <key>mgrCardCpuUtil[{#SNMPINDEX}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                </discovery_rule>
+            </discovery_rules>
+        </template>
+    </templates>
+</zabbix_export>
